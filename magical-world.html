@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a0533">
+<link rel="manifest" href="data:application/json,{}">
+<title>Parker's World</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Patrick+Hand&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Patrick Hand',cursive;
+    background:linear-gradient(180deg,#1a0533 0%,#2d1b69 30%,#4a2c8a 60%,#7b4bb8 100%);
+    min-height:100vh;overflow-x:hidden;color:#fff;
+  }
+  /* Stars */
+  .stars-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+  .star{position:absolute;background:#fff;border-radius:50%;animation:twinkle var(--dur) ease-in-out infinite alternate}
+  @keyframes twinkle{0%{opacity:.2;transform:scale(.8)}100%{opacity:1;transform:scale(1.4)}}
+
+  /* Floating emoji */
+  .floater{position:fixed;pointer-events:none;z-index:1;animation:floatY var(--dur) ease-in-out infinite alternate;font-size:var(--size);opacity:.5}
+  @keyframes floatY{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(-35px) rotate(20deg)}}
+
+  /* Rainbow arc */
+  .rainbow-arc{position:fixed;top:-220px;left:50%;transform:translateX(-50%);width:900px;height:450px;border-radius:0 0 450px 450px;background:conic-gradient(from 180deg at 50% 0%,#ff0000,#ff8800,#ffff00,#00ff00,#0088ff,#8800ff,#ff00ff,#ff0000);opacity:.12;z-index:0;pointer-events:none}
+
+  /* Fairy dust trail */
+  .fairy-dust{position:fixed;pointer-events:none;z-index:9999;font-size:1em;animation:dustFloat 1.2s ease forwards}
+  @keyframes dustFloat{0%{opacity:1;transform:translateY(0) scale(1) rotate(0deg)}100%{opacity:0;transform:translateY(-80px) scale(.2) rotate(180deg)}}
+
+  /* Container */
+  .container{position:relative;z-index:10;max-width:920px;margin:0 auto;padding:30px 20px 60px}
+
+  /* Header */
+  .header{text-align:center;padding:30px 0 10px}
+  .header h1{
+    font-family:'Bubblegum Sans',cursive;font-size:3.4em;
+    background:linear-gradient(90deg,#ff6b9d,#ffd93d,#6bcb77,#4d96ff,#c77dff,#ff6b9d);
+    background-size:400% 400%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    animation:rainbowShift 3s ease infinite;filter:drop-shadow(0 2px 10px rgba(255,255,255,.25))
+  }
+  @keyframes rainbowShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .subtitle{font-size:1.4em;color:#e0c3fc;margin-top:6px}
+
+  /* Fairy floating across header */
+  .fairy-float{
+    display:inline-block;font-size:2em;
+    animation:fairyFly 6s ease-in-out infinite;position:relative;
+  }
+  @keyframes fairyFly{
+    0%{transform:translateX(-40px) translateY(0) rotate(-5deg)}
+    25%{transform:translateX(10px) translateY(-15px) rotate(5deg)}
+    50%{transform:translateX(40px) translateY(0) rotate(-3deg)}
+    75%{transform:translateX(10px) translateY(-10px) rotate(5deg)}
+    100%{transform:translateX(-40px) translateY(0) rotate(-5deg)}
+  }
+
+  /* Music button */
+  .music-btn{
+    position:fixed;top:16px;right:16px;z-index:500;
+    background:rgba(255,255,255,.12);backdrop-filter:blur(8px);
+    border:2px solid rgba(255,255,255,.2);border-radius:50%;
+    width:56px;height:56px;font-size:1.6em;color:#fff;cursor:pointer;
+    transition:all .2s;display:flex;align-items:center;justify-content:center;
+  }
+  .music-btn:hover{transform:scale(1.15);background:rgba(255,255,255,.2)}
+  .music-btn.playing{border-color:#6bcb77;box-shadow:0 0 20px rgba(107,203,119,.4)}
+
+  /* Silly button */
+  .silly-btn{
+    display:block;margin:20px auto 0;padding:14px 36px;border-radius:60px;border:3px dashed #ffd93d;
+    background:rgba(255,217,61,.1);color:#ffd93d;font-family:'Bubblegum Sans',cursive;font-size:1.3em;
+    cursor:pointer;transition:all .3s;animation:wobble 2s ease-in-out infinite;
+  }
+  @keyframes wobble{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+  .silly-btn:hover{background:rgba(255,217,61,.25);transform:scale(1.1)!important}
+
+  /* Story cards */
+  .story-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:28px}
+  .story-card{
+    background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border-radius:24px;
+    padding:28px 24px;cursor:pointer;transition:all .3s;border:2px solid rgba(255,255,255,.1);
+    text-align:center;position:relative;overflow:hidden;
+  }
+  .story-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;border-radius:24px 24px 0 0}
+  .story-card:nth-child(1)::before{background:linear-gradient(90deg,#ff6b9d,#ff9a76)}
+  .story-card:nth-child(2)::before{background:linear-gradient(90deg,#6bcb77,#4dd0e1)}
+  .story-card:nth-child(3)::before{background:linear-gradient(90deg,#c77dff,#ff6bcd)}
+  .story-card:hover{transform:translateY(-8px) scale(1.02);border-color:rgba(255,255,255,.3);box-shadow:0 20px 60px rgba(0,0,0,.3),0 0 40px rgba(199,125,255,.15)}
+  .story-card .icon{font-size:4em;margin-bottom:12px;display:block}
+  .story-card h2{font-family:'Bubblegum Sans',cursive;font-size:1.6em;margin-bottom:8px}
+  .story-card p{font-size:1.1em;color:#c8b8e8}
+  .read-btn{
+    display:inline-block;margin-top:16px;padding:10px 28px;border-radius:50px;border:none;
+    font-family:'Bubblegum Sans',cursive;font-size:1.15em;color:#fff;cursor:pointer;transition:all .2s;
+  }
+  .story-card:nth-child(1) .read-btn{background:linear-gradient(135deg,#ff6b9d,#ff9a76)}
+  .story-card:nth-child(2) .read-btn{background:linear-gradient(135deg,#6bcb77,#4dd0e1)}
+  .story-card:nth-child(3) .read-btn{background:linear-gradient(135deg,#c77dff,#ff6bcd)}
+  .read-btn:hover{transform:scale(1.08);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+
+  /* Story overlay */
+  .story-overlay{
+    display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;
+    background:rgba(10,5,30,.94);backdrop-filter:blur(10px);overflow-y:auto;
+  }
+  .story-overlay.active{display:flex;justify-content:center;align-items:flex-start;animation:fadeIn .4s ease}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  .story-reader{
+    max-width:700px;width:92%;margin:36px auto;padding:40px 32px;
+    background:rgba(255,255,255,.06);border-radius:28px;border:2px solid rgba(255,255,255,.12);position:relative;
+  }
+  .close-btn{
+    position:absolute;top:14px;right:18px;background:rgba(255,255,255,.15);border:none;color:#fff;
+    font-size:1.6em;width:44px;height:44px;border-radius:50%;cursor:pointer;transition:all .2s;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .close-btn:hover{background:rgba(255,100,100,.4);transform:scale(1.1)}
+
+  .story-reader .story-icon{font-size:3.5em;text-align:center;display:block;margin-bottom:10px}
+  .story-reader h2{
+    font-family:'Bubblegum Sans',cursive;font-size:2.1em;text-align:center;margin-bottom:20px;
+  }
+
+  /* Page animation */
+  .page{display:none;animation:pageIn .5s ease}
+  .page.active{display:block}
+  @keyframes pageIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  .page .scene{text-align:center;font-size:4em;margin-bottom:14px;line-height:1.3}
+
+  /* Highlighted text (karaoke style) */
+  .story-text{font-size:1.5em;line-height:1.8;color:#c8b8e8;text-align:center;padding:0 8px}
+  .story-text .word{
+    display:inline;cursor:pointer;transition:all .25s;border-radius:4px;padding:0 2px;
+  }
+  .story-text .word:hover{color:#fff;text-shadow:0 0 12px rgba(255,200,255,.6)}
+  .story-text .word.highlighted{
+    color:#fff;background:rgba(199,125,255,.3);border-radius:6px;padding:2px 4px;
+    text-shadow:0 0 8px rgba(199,125,255,.5);
+  }
+  .story-text .word.read-aloud{
+    color:#ffd93d;transform:scale(1.08);text-shadow:0 0 15px rgba(255,217,61,.6);
+  }
+
+  /* Read-aloud button */
+  .read-aloud-btn{
+    display:block;margin:16px auto 0;padding:10px 28px;border-radius:50px;
+    border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#ffd93d;
+    font-family:'Bubblegum Sans',cursive;font-size:1.15em;cursor:pointer;transition:all .2s;
+  }
+  .read-aloud-btn:hover{background:rgba(255,255,255,.18);transform:scale(1.05)}
+  .read-aloud-btn.active{border-color:#ffd93d;box-shadow:0 0 15px rgba(255,217,61,.3)}
+
+  /* Interactive elements */
+  .clickable{cursor:pointer;display:inline-block;transition:transform .3s;user-select:none}
+  .clickable:hover{transform:scale(1.2)}
+  .clickable:active{transform:scale(1.5)}
+  .wiggle{animation:wiggle .5s ease}
+  @keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-15deg) scale(1.3)}75%{transform:rotate(15deg) scale(1.3)}}
+
+  /* Big bounce for silly taps */
+  .bigBounce{animation:bigBounce .6s ease}
+  @keyframes bigBounce{
+    0%{transform:scale(1)}
+    30%{transform:scale(1.8) rotate(20deg)}
+    60%{transform:scale(.7) rotate(-10deg)}
+    100%{transform:scale(1) rotate(0)}
+  }
+
+  .choice-buttons{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:18px}
+  .choice-btn{
+    padding:12px 24px;border-radius:50px;border:2px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.1);color:#fff;font-family:'Patrick Hand',cursive;
+    font-size:1.2em;cursor:pointer;transition:all .25s;
+  }
+  .choice-btn:hover{background:rgba(255,255,255,.25);transform:scale(1.08);box-shadow:0 0 20px rgba(199,125,255,.3)}
+  .choice-btn.selected{background:linear-gradient(135deg,#c77dff,#ff6b9d);border-color:transparent;transform:scale(1.05)}
+
+  .magic-result{text-align:center;font-size:1.3em;margin-top:14px;min-height:36px;color:#ffd93d}
+
+  /* Dress-up / color picker */
+  .color-picker{display:flex;justify-content:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .color-dot{
+    width:44px;height:44px;border-radius:50%;cursor:pointer;border:3px solid rgba(255,255,255,.3);
+    transition:all .2s;
+  }
+  .color-dot:hover{transform:scale(1.2);box-shadow:0 0 15px currentColor}
+  .color-dot.selected{border-color:#fff;transform:scale(1.15);box-shadow:0 0 20px currentColor}
+
+  /* Sound effect labels */
+  .sound-label{
+    display:inline-block;padding:4px 14px;border-radius:20px;
+    background:rgba(255,217,61,.15);color:#ffd93d;font-size:.9em;margin-top:8px;
+    animation:fadeIn .4s ease;
+  }
+
+  .progress-dots{display:flex;justify-content:center;gap:8px;margin-top:18px}
+  .dot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s}
+  .dot.active{background:#c77dff;transform:scale(1.3)}
+  .dot.done{background:#6bcb77}
+
+  .page-controls{display:flex;justify-content:center;gap:16px;margin-top:24px}
+  .page-controls button{
+    padding:12px 32px;border-radius:50px;border:2px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.08);color:#fff;font-family:'Bubblegum Sans',cursive;
+    font-size:1.2em;cursor:pointer;transition:all .2s;
+  }
+  .page-controls button:hover{background:rgba(255,255,255,.2);transform:scale(1.05)}
+  .page-controls button.next-btn{background:linear-gradient(135deg,#c77dff,#6bcb77);border:none}
+
+  /* Silly popup */
+  .silly-popup{
+    position:fixed;z-index:2000;padding:20px 30px;border-radius:24px;
+    background:rgba(30,10,60,.95);border:3px solid #ffd93d;
+    font-family:'Bubblegum Sans',cursive;font-size:1.5em;color:#ffd93d;
+    text-align:center;top:50%;left:50%;transform:translate(-50%,-50%);
+    animation:popIn .4s ease;pointer-events:auto;
+    box-shadow:0 0 40px rgba(255,217,61,.3);
+  }
+  @keyframes popIn{0%{transform:translate(-50%,-50%) scale(0) rotate(-20deg)}100%{transform:translate(-50%,-50%) scale(1) rotate(0)}}
+  .silly-popup .dismiss{
+    display:block;margin:12px auto 0;padding:8px 24px;border-radius:40px;
+    border:none;background:#ffd93d;color:#1a0533;font-family:'Bubblegum Sans',cursive;
+    font-size:.85em;cursor:pointer;
+  }
+
+  .footer{text-align:center;padding:40px 0 20px;color:#8a6fb8;font-size:1.1em}
+
+  /* ── Mobile: touch targets, safe areas, scaling ── */
+  @media(max-width:600px){
+    body{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;overscroll-behavior:none}
+    .container{padding:20px 14px 80px;padding-top:env(safe-area-inset-top,20px)}
+    .header{padding:20px 0 8px}
+    .header h1{font-size:2.2em}
+    .subtitle{font-size:1.2em}
+    .fairy-float{font-size:1.5em}
+    .silly-btn{font-size:1.1em;padding:12px 28px}
+    .story-grid{grid-template-columns:1fr;gap:16px;margin-top:20px}
+    .story-card{padding:22px 18px;border-radius:20px}
+    .story-card .icon{font-size:3em}
+    .story-card h2{font-size:1.4em}
+    .read-btn{padding:12px 32px;font-size:1.1em;min-height:48px}
+    .music-btn{width:48px;height:48px;font-size:1.3em;top:10px;right:10px}
+    .story-overlay{align-items:flex-start}
+    .story-reader{
+      padding:24px 16px;margin:12px auto;width:96%;border-radius:22px;
+      max-height:calc(100vh - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch;
+    }
+    .story-reader .story-icon{font-size:2.8em}
+    .story-reader h2{font-size:1.5em;margin-bottom:14px}
+    .close-btn{width:40px;height:40px;font-size:1.4em;top:10px;right:12px}
+    .page .scene{font-size:2.6em;margin-bottom:10px}
+    .story-text{font-size:1.25em;line-height:1.7;padding:0 4px}
+    .story-text .word{padding:2px 3px}
+    .read-aloud-btn{min-height:48px;font-size:1.1em;padding:12px 24px}
+    .clickable{min-width:48px;min-height:48px;display:inline-flex;align-items:center;justify-content:center}
+    .choice-buttons{gap:10px}
+    .choice-btn{padding:14px 20px;font-size:1.1em;min-height:48px;width:100%}
+    .magic-result{font-size:1.15em}
+    .page-controls{gap:12px;margin-top:18px;padding-bottom:env(safe-area-inset-bottom,12px)}
+    .page-controls button{padding:14px 28px;font-size:1.1em;min-height:48px}
+    .progress-dots{gap:6px;margin-top:14px}
+    .dot{width:10px;height:10px}
+    .silly-popup{width:88vw;max-width:340px;font-size:1.2em;padding:18px 20px}
+    .silly-popup .dismiss{min-height:44px;padding:10px 28px;font-size:.9em}
+    .rainbow-arc{width:500px;height:250px;top:-120px;border-radius:0 0 250px 250px}
+    .footer{font-size:1em;padding:30px 0 16px}
+    .color-dot{width:48px;height:48px}
+  }
+  @media(max-width:380px){
+    .header h1{font-size:1.9em}
+    .page .scene{font-size:2.2em}
+    .story-text{font-size:1.15em}
+    .story-reader{padding:20px 12px}
+    .story-reader h2{font-size:1.3em}
+  }
+  /* Landscape phone */
+  @media(max-height:500px) and (orientation:landscape){
+    .page .scene{font-size:2em;margin-bottom:6px}
+    .story-reader{padding:16px 20px;margin:8px auto}
+    .story-reader .story-icon{font-size:2em;margin-bottom:4px}
+    .story-reader h2{font-size:1.3em;margin-bottom:10px}
+    .page-controls{margin-top:12px}
+  }
+  /* PWA standalone padding */
+  @media(display-mode:standalone){
+    .container{padding-top:calc(env(safe-area-inset-top,20px) + 10px)}
+  }
+</style>
+</head>
+<body>
+
+<div class="stars-container" id="stars"></div>
+<div class="rainbow-arc"></div>
+<div id="floaters"></div>
+
+<!-- Music toggle -->
+<button class="music-btn" id="musicBtn" onclick="toggleMusic()" title="Play fairy music!">🎵</button>
+
+<div class="container">
+  <header class="header">
+    <div class="fairy-float">🧚</div>
+    <h1>Parker's World</h1>
+    <p class="subtitle">Welcome, Parker! Tap everything!</p>
+    <button class="silly-btn" onclick="doSillyThing()">🤪 Silly Button 🤪</button>
+  </header>
+
+  <div class="story-grid">
+    <div class="story-card" onclick="openStory('unicorn')">
+      <span class="icon">🦄</span>
+      <h2>Sparkle's Rainbow</h2>
+      <p>Help Parker find the lost colors!</p>
+      <button class="read-btn">Read Story</button>
+    </div>
+    <div class="story-card" onclick="openStory('mermaid')">
+      <span class="icon">🧜‍♀️</span>
+      <h2>Marina's Shell</h2>
+      <p>Parker helps a mermaid sing loud!</p>
+      <button class="read-btn">Read Story</button>
+    </div>
+    <div class="story-card" onclick="openStory('star')">
+      <span class="icon">⭐</span>
+      <h2>Stella the Star</h2>
+      <p>A star falls into Parker's yard!</p>
+      <button class="read-btn">Read Story</button>
+    </div>
+  </div>
+  <div class="footer">Made with fairy magic just for Parker 🧚</div>
+</div>
+
+<div class="story-overlay" id="storyOverlay">
+  <div class="story-reader" id="storyReader"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+//  WEB AUDIO MUSIC ENGINE
+// ═══════════════════════════════════
+let audioCtx = null;
+let musicPlaying = false;
+let musicTimeout = null;
+const TEMPO = 320;
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+// Note frequencies
+const NOTES = {
+  C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392.00,A4:440.00,B4:493.88,
+  C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99,A5:880.00,
+  C3:130.81,E3:164.81,G3:196.00,A3:220.00,B3:246.94,F3:174.61,D3:146.83
+};
+
+function playNote(freq, startTime, duration, type='triangle', vol=0.12) {
+  const ctx = getAudio();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startTime);
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(vol, startTime + 0.04);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration - 0.02);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(startTime);
+  osc.stop(startTime + duration);
+}
+
+// Fairy lullaby melody
+const melody = [
+  ['E4',1],['G4',1],['A4',2],['G4',1],['E4',1],['D4',2],
+  ['C4',1],['E4',1],['G4',1],['A4',1],['G4',2],['E4',2],
+  ['A4',1],['G4',1],['E4',1],['D4',1],['C4',2],['E4',1],['G4',1],
+  ['A4',1],['C5',1],['B4',1],['A4',1],['G4',2],[null,2],
+];
+const bass = [
+  ['C3',4],['G3',4],['A3',4],['E3',4],
+  ['F3',4],['C3',4],['G3',4],[null,4],
+];
+
+function playMelodyLoop() {
+  if (!musicPlaying) return;
+  const ctx = getAudio();
+  const now = ctx.currentTime + 0.05;
+  const beatLen = TEMPO / 1000;
+  let t = 0;
+  melody.forEach(([note, beats]) => {
+    if (note) playNote(NOTES[note], now + t * beatLen, beats * beatLen * 0.9, 'triangle', 0.1);
+    t += beats;
+  });
+  let bt = 0;
+  bass.forEach(([note, beats]) => {
+    if (note) playNote(NOTES[note], now + bt * beatLen, beats * beatLen * 0.85, 'sine', 0.06);
+    bt += beats;
+  });
+  // Soft chime layer
+  [0,8,16].forEach(offset => {
+    playNote(NOTES.E5, now + offset * beatLen, beatLen * 2, 'sine', 0.03);
+  });
+  const loopLen = t * beatLen * 1000;
+  musicTimeout = setTimeout(playMelodyLoop, loopLen);
+}
+
+function toggleMusic() {
+  const btn = document.getElementById('musicBtn');
+  if (!musicPlaying) {
+    musicPlaying = true;
+    btn.classList.add('playing');
+    btn.textContent = '🎶';
+    playMelodyLoop();
+  } else {
+    musicPlaying = false;
+    btn.classList.remove('playing');
+    btn.textContent = '🎵';
+    clearTimeout(musicTimeout);
+  }
+}
+
+// Sound effects
+function playSFX(type) {
+  const ctx = getAudio();
+  const now = ctx.currentTime;
+  if (type === 'sparkle') {
+    [0,.08,.16].forEach((d,i) => playNote([880,1108,1320][i], now+d, 0.2, 'sine', 0.08));
+  } else if (type === 'boing') {
+    const osc = ctx.createOscillator(); const g = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(300, now);
+    osc.frequency.exponentialRampToValueAtTime(80, now+0.3);
+    g.gain.setValueAtTime(0.15, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.3);
+    osc.connect(g); g.connect(ctx.destination); osc.start(now); osc.stop(now+0.35);
+  } else if (type === 'pop') {
+    const osc = ctx.createOscillator(); const g = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(200, now+0.1);
+    g.gain.setValueAtTime(0.2, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.15);
+    osc.connect(g); g.connect(ctx.destination); osc.start(now); osc.stop(now+0.2);
+  } else if (type === 'tada') {
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((f,i) => playNote(f, now+i*0.12, 0.3, 'triangle', 0.1));
+  } else if (type === 'splash') {
+    for (let i=0;i<6;i++) {
+      playNote(200+Math.random()*800, now+i*0.05, 0.15, 'sine', 0.04);
+    }
+  } else if (type === 'whoosh') {
+    const osc = ctx.createOscillator(); const g = ctx.createGain();
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now);
+    osc.frequency.exponentialRampToValueAtTime(2000, now+0.25);
+    g.gain.setValueAtTime(0.06, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.3);
+    osc.connect(g); g.connect(ctx.destination); osc.start(now); osc.stop(now+0.35);
+  } else if (type === 'giggle') {
+    [400,500,400,500,600].forEach((f,i) => playNote(f, now+i*0.08, 0.08, 'square', 0.04));
+  } else if (type === 'fart') {
+    const osc = ctx.createOscillator(); const g = ctx.createGain();
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(80, now);
+    osc.frequency.linearRampToValueAtTime(40, now+0.4);
+    g.gain.setValueAtTime(0.12, now); g.gain.exponentialRampToValueAtTime(0.001, now+0.45);
+    osc.connect(g); g.connect(ctx.destination); osc.start(now); osc.stop(now+0.5);
+  }
+}
+
+// ═══════════════════════════════════
+//  STARS + FLOATERS
+// ═══════════════════════════════════
+const starsEl = document.getElementById('stars');
+for (let i=0;i<120;i++){
+  const s = document.createElement('div'); s.className='star';
+  const sz = Math.random()*3+1;
+  s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${Math.random()*2+1}s;animation-delay:${Math.random()*3}s;background:${Math.random()>.7?'#ffd93d':Math.random()>.5?'#c77dff':'#fff'}`;
+  starsEl.appendChild(s);
+}
+const floaterEmojis=['🌈','⭐','🦄','🧜‍♀️','🐚','🌟','💜','🌙','🦋','🌸','💫','🧚','🍄','🐬'];
+const floatersEl=document.getElementById('floaters');
+for(let i=0;i<14;i++){
+  const f=document.createElement('div');f.className='floater';
+  f.textContent=floaterEmojis[i%floaterEmojis.length];
+  f.style.cssText=`top:${Math.random()*90+5}%;left:${Math.random()*90+5}%;--dur:${Math.random()*4+3}s;--size:${Math.random()*1.5+1.2}em;animation-delay:${Math.random()*4}s`;
+  floatersEl.appendChild(f);
+}
+
+// ═══════════════════════════════════
+//  FAIRY DUST ON MOUSE/TOUCH
+// ═══════════════════════════════════
+const dustEmojis=['✨','💖','⭐','🌟','💜','🧚','🌈','💫'];
+document.addEventListener('click', e => {
+  playSFX('sparkle');
+  for(let i=0;i<5;i++){
+    const sp=document.createElement('div');sp.className='fairy-dust';
+    sp.textContent=dustEmojis[Math.floor(Math.random()*dustEmojis.length)];
+    sp.style.left=(e.clientX+(Math.random()-.5)*50)+'px';
+    sp.style.top=(e.clientY+(Math.random()-.5)*50)+'px';
+    sp.style.fontSize=(Math.random()*.8+.8)+'em';
+    document.body.appendChild(sp);
+    setTimeout(()=>sp.remove(),1200);
+  }
+});
+
+// ═══════════════════════════════════
+//  SILLY BUTTON
+// ═══════════════════════════════════
+const sillyThings = [
+  {text:"🐔 A chicken just flew across the screen! BAWK!",sfx:'boing'},
+  {text:"🧚 A fairy turned your nose into a banana! 🍌",sfx:'pop'},
+  {text:"💨 Oops! Sparkle the unicorn tooted! 💨",sfx:'fart'},
+  {text:"🙃 Everything is upside down for 3 seconds!",sfx:'boing',action:'flip'},
+  {text:"🤣 You just got tickled by a magical feather!",sfx:'giggle'},
+  {text:"🌈 It's raining gummy bears! 🧸",sfx:'tada'},
+  {text:"🐸 A frog says: RIBBIT RIBBIT PARKER!",sfx:'boing'},
+  {text:"🧦 A sock flew out of nowhere!",sfx:'whoosh'},
+  {text:"🍕 A fairy made it rain pizza!",sfx:'pop'},
+  {text:"🦄 Sparkle just did a silly dance! 💃",sfx:'giggle'},
+];
+let sillyIdx = 0;
+function doSillyThing() {
+  const thing = sillyThings[sillyIdx % sillyThings.length];
+  sillyIdx++;
+  playSFX(thing.sfx);
+  // Show popup
+  const popup = document.createElement('div');
+  popup.className='silly-popup';
+  popup.innerHTML=`${thing.text}<button class="dismiss" onclick="this.parentElement.remove()">Ha ha ha!</button>`;
+  document.body.appendChild(popup);
+  setTimeout(()=>{if(popup.parentElement)popup.remove()},4000);
+  // Special actions
+  if(thing.action==='flip'){
+    document.body.style.transform='rotate(180deg)';
+    document.body.style.transition='transform .5s';
+    setTimeout(()=>{document.body.style.transform='';},3000);
+  }
+  // Rain emoji
+  for(let i=0;i<12;i++){
+    setTimeout(()=>{
+      const drop=document.createElement('div');drop.className='fairy-dust';
+      drop.textContent=['🍕','🧸','🌈','⭐','🍬','🧁'][Math.floor(Math.random()*6)];
+      drop.style.left=Math.random()*window.innerWidth+'px';
+      drop.style.top='-20px';
+      drop.style.fontSize='2em';
+      document.body.appendChild(drop);
+      setTimeout(()=>drop.remove(),1200);
+    },i*80);
+  }
+}
+
+// ═══════════════════════════════════
+//  STORIES DATA (kindergarten-simple)
+// ═══════════════════════════════════
+const stories = {
+  unicorn: {
+    icon:'🦄', title:"Sparkle's Rainbow",
+    color1:'#ff6b9d', color2:'#ff9a76',
+    pages:[
+      {
+        scene:'🦄 😢 🌧️',
+        text:'Oh no! The rainbow is gone! Sparkle the unicorn is sad.',
+        sfx:'splash'
+      },
+      {
+        scene:'🦄 ❤️ 👧',
+        text:'"Parker! Can you help me?" said Sparkle. "We need to find the colors!"',
+        sfx:'sparkle'
+      },
+      {
+        scene:'🌺 🔍 🦄',
+        text:'Tap each color to put the rainbow back!',
+        interactive:'collect-colors',
+        items:['🔴','🟠','🟡','🟢','🔵','🟣'],
+        labels:['Red!','Orange!','Yellow!','Green!','Blue!','Purple!'],
+        sfx:'pop'
+      },
+      {
+        scene:'🦄 ✨ 🌈',
+        text:'YAY! Parker found all the colors! Tap the sparkle to fix the rainbow!',
+        interactive:'tap-magic',
+        tapEmoji:'✨',
+        sfx:'tada'
+      },
+      {
+        scene:'🌈 🦄 👧',
+        text:'Pick a wish for the rainbow!',
+        interactive:'choice',
+        choices:[
+          {text:'💖 Love',result:'The sky turned PINK with love!'},
+          {text:'⭐ Glitter',result:'Glitter fell like snow!'},
+          {text:'🌸 Flowers',result:'Flowers grew everywhere!'},
+        ],
+        sfx:'sparkle'
+      },
+      {
+        scene:'🌈 🦄 💖 👧 🌸 🦋',
+        text:'Now when Parker sees a rainbow, it means Sparkle is saying hi! The end!',
+        sfx:'tada'
+      },
+    ]
+  },
+  mermaid: {
+    icon:'🧜‍♀️', title:"Marina's Shell",
+    color1:'#6bcb77', color2:'#4dd0e1',
+    pages:[
+      {
+        scene:'🧜‍♀️ 🌊 🐠',
+        text:'Marina the mermaid could only whisper. She wanted to SING!',
+        sfx:'splash'
+      },
+      {
+        scene:'🐚 ✨ 🧜‍♀️',
+        text:'She found a magic shell! "Sing into me!" it said. But first, wake up the fish!',
+        sfx:'sparkle'
+      },
+      {
+        scene:'🐙 🐢 🐠 🐬 🦀 🐡',
+        text:'Tap each sea friend to wake them up!',
+        interactive:'wake-up',
+        items:['🐙','🐢','🐠','🐬','🦀','🐡'],
+        labels:['Octopus waves!','Turtle smiles!','Fish dances!','Dolphin flips!','Crab claps!','Puffer puffs up!'],
+        sfx:'pop'
+      },
+      {
+        scene:'🧜‍♀️ 🎵 🐚',
+        text:'What song should Marina sing?',
+        interactive:'choice',
+        choices:[
+          {text:'🎵 Silly song',result:'La la la PIZZA! The fish laughed!'},
+          {text:'💤 Sleepy song',result:'Zzzzz! Even the waves fell asleep!'},
+          {text:'🎉 Dance song',result:'DANCE PARTY under the sea!'},
+        ],
+        sfx:'sparkle'
+      },
+      {
+        scene:'🧜‍♀️ 🎶 🌊',
+        text:'Tap the shell to make Marina sing LOUD!',
+        interactive:'tap-magic',
+        tapEmoji:'🐚',
+        sfx:'tada'
+      },
+      {
+        scene:'🧜‍♀️ 👑 🌟 👧',
+        text:'Marina got a crown! Now if Parker listens at the beach, she can hear Marina sing! The end!',
+        sfx:'tada'
+      },
+    ]
+  },
+  star: {
+    icon:'⭐', title:'Stella the Star',
+    color1:'#c77dff', color2:'#ff6bcd',
+    pages:[
+      {
+        scene:'🌙 ⭐ 💫',
+        text:'Stella was a tiny star. She leaned too far and... WHOOPS!',
+        sfx:'whoosh'
+      },
+      {
+        scene:'⭐ 💥 🏡',
+        text:'She fell right into Parker\'s backyard! BONK!',
+        sfx:'boing'
+      },
+      {
+        scene:'⭐ 😢 👧',
+        text:'"Parker! Help me get home!" said Stella. Let\'s ask the animals!',
+        sfx:'sparkle'
+      },
+      {
+        scene:'🦉 🐰 🦊 🐻 🦋 🐿️',
+        text:'Tap the animals to ask for help!',
+        interactive:'wake-up',
+        items:['🦉','🐰','🦊','🐻','🦋','🐿️'],
+        labels:['"Try the tall tree!"','"Jump real high!"','"Climb the mountain!"','"I\'ll throw you!"','"Fly with me!"','"Use my nuts as fuel!"'],
+        sfx:'pop'
+      },
+      {
+        scene:'⭐ 🦄 🌈',
+        text:'Sparkle the unicorn showed up! How should Stella get home?',
+        interactive:'choice',
+        choices:[
+          {text:'🌈 Ride the rainbow',result:'WEEEEE! She slid up like a slide!'},
+          {text:'🚀 Blast off',result:'ZOOM! She flew like a rocket!'},
+          {text:'🎈 Balloons',result:'POP POP POP! Up up up!'},
+        ],
+        sfx:'whoosh'
+      },
+      {
+        scene:'⭐ ✨ 🌙',
+        text:'Tap Stella to see her happy dance!',
+        interactive:'tap-magic',
+        tapEmoji:'⭐',
+        sfx:'tada'
+      },
+      {
+        scene:'🌙 ⭐ 💜 👧',
+        text:'Now when Parker looks up and a star blinks, that\'s Stella saying hi! The end!',
+        sfx:'tada'
+      },
+    ]
+  }
+};
+
+// ═══════════════════════════════════
+//  STORY ENGINE
+// ═══════════════════════════════════
+let currentStory=null, currentPage=0, collectedItems=new Set(), highlightInterval=null;
+
+function openStory(key){
+  currentStory=stories[key]; currentPage=0; collectedItems.clear();
+  renderPage();
+  document.getElementById('storyOverlay').classList.add('active');
+  document.body.style.overflow='hidden';
+}
+function closeStory(){
+  document.getElementById('storyOverlay').classList.remove('active');
+  document.body.style.overflow='';
+  currentStory=null;
+  stopHighlight();
+}
+function goPage(dir){
+  stopHighlight();
+  currentPage+=dir;
+  if(currentPage<0)currentPage=0;
+  if(currentPage>=currentStory.pages.length)currentPage=currentStory.pages.length-1;
+  renderPage();
+}
+
+function renderPage(){
+  const s=currentStory, p=s.pages[currentPage], total=s.pages.length;
+  const reader=document.getElementById('storyReader');
+
+  // Build word spans for highlighting
+  const words = p.text.split(' ');
+  const wordSpans = words.map((w,i) => `<span class="word" data-idx="${i}" onclick="tapWord(this)">${w}</span>`).join(' ');
+
+  let interactiveHTML = '';
+  if(p.interactive==='collect-colors'){
+    const items=p.items.map((e,i)=>`<span class="clickable" style="font-size:3em;margin:8px" onclick="collectItem(this,${i},'${p.labels[i]}')">${e}</span>`).join('');
+    interactiveHTML=`<div style="text-align:center;margin-top:14px">${items}</div><div class="magic-result" id="magicResult"></div>`;
+  } else if(p.interactive==='wake-up'){
+    const items=p.items.map((e,i)=>`<span class="clickable" style="font-size:3em;margin:8px" onclick="wakeItem(this,${i},\`${p.labels[i]}\`)">${e}</span>`).join('');
+    interactiveHTML=`<div style="text-align:center;margin-top:14px">${items}</div><div class="magic-result" id="magicResult"></div>`;
+  } else if(p.interactive==='choice'){
+    const btns=p.choices.map((c,i)=>`<button class="choice-btn" onclick="makeChoice(this,${i})">${c.text}</button>`).join('');
+    interactiveHTML=`<div class="choice-buttons">${btns}</div><div class="magic-result" id="magicResult"></div>`;
+  } else if(p.interactive==='tap-magic'){
+    interactiveHTML=`<div style="text-align:center;margin-top:12px"><span class="clickable" style="font-size:5em" onclick="tapMagic(this)">${p.tapEmoji||'✨'}</span></div><div class="magic-result" id="magicResult"></div>`;
+  }
+
+  // Progress dots
+  let dots='';
+  for(let i=0;i<total;i++){
+    dots+=`<div class="dot ${i===currentPage?'active':i<currentPage?'done':''}"></div>`;
+  }
+
+  reader.innerHTML=`
+    <button class="close-btn" onclick="closeStory()">✕</button>
+    <span class="story-icon">${s.icon}</span>
+    <h2 style="background:linear-gradient(135deg,${s.color1},${s.color2});-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${s.title}</h2>
+    <div class="page active">
+      <div class="scene">${p.scene}</div>
+      <div class="story-text" id="storyText">${wordSpans}</div>
+      <button class="read-aloud-btn" onclick="startHighlight()">🧚 Read Along</button>
+      ${interactiveHTML}
+    </div>
+    <div class="progress-dots">${dots}</div>
+    <div class="page-controls">
+      ${currentPage>0?'<button onclick="goPage(-1)">Back</button>':''}
+      ${currentPage<total-1?'<button class="next-btn" onclick="goPage(1)">Next ➜</button>':'<button class="next-btn" onclick="closeStory()">The End! 🎉</button>'}
+    </div>
+  `;
+  document.getElementById('storyOverlay').scrollTop=0;
+
+  // Page entry sound
+  if(p.sfx) setTimeout(()=>playSFX(p.sfx),200);
+}
+
+// ── Word highlight (karaoke read-along) ──
+function startHighlight(){
+  stopHighlight();
+  const words=document.querySelectorAll('#storyText .word');
+  if(!words.length) return;
+  const btn=document.querySelector('.read-aloud-btn');
+  if(btn) btn.classList.add('active');
+  let idx=0;
+  // Play a little chime per word
+  highlightInterval=setInterval(()=>{
+    words.forEach(w=>w.classList.remove('read-aloud'));
+    if(idx>=words.length){stopHighlight();return;}
+    words[idx].classList.add('read-aloud','highlighted');
+    // Tiny note per word
+    const ctx=getAudio();
+    const freq=300+Math.sin(idx*0.7)*100;
+    playNote(freq,ctx.currentTime,0.12,'sine',0.04);
+    idx++;
+  },380);
+}
+function stopHighlight(){
+  clearInterval(highlightInterval); highlightInterval=null;
+  const btn=document.querySelector('.read-aloud-btn');
+  if(btn) btn.classList.remove('active');
+}
+
+function tapWord(el){
+  el.classList.add('highlighted');
+  playSFX('pop');
+  el.classList.add('bigBounce');
+  setTimeout(()=>el.classList.remove('bigBounce'),600);
+}
+
+// ── Interactive handlers ──
+function collectItem(el,idx,label){
+  if(collectedItems.has(idx)) return;
+  collectedItems.add(idx);
+  playSFX('pop');
+  el.classList.add('bigBounce');
+  setTimeout(()=>el.classList.remove('bigBounce'),600);
+  const result=document.getElementById('magicResult');
+  result.innerHTML=`${label} ✨ (${collectedItems.size}/6)`;
+  if(collectedItems.size===6){
+    playSFX('tada');
+    result.innerHTML='🌈 ALL THE COLORS! Rainbow time! 🌈';
+  }
+}
+function wakeItem(el,idx,label){
+  playSFX('boing');
+  el.classList.add('bigBounce');
+  setTimeout(()=>el.classList.remove('bigBounce'),600);
+  document.getElementById('magicResult').innerHTML=label+' ✨';
+}
+function makeChoice(btn,idx){
+  document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  playSFX('tada');
+  document.getElementById('magicResult').innerHTML=currentStory.pages[currentPage].choices[idx].result+' ✨';
+}
+let tapCount=0;
+function tapMagic(el){
+  tapCount++;
+  playSFX(tapCount%2===0?'tada':'sparkle');
+  el.classList.add('bigBounce');
+  setTimeout(()=>el.classList.remove('bigBounce'),600);
+  const msgs=['Sparkle!','MORE sparkles!','SO MANY!','IT\'S GLOWING!','MAGICAL!!! ✨✨✨','PARKER IS A FAIRY QUEEN! 👑'];
+  document.getElementById('magicResult').innerHTML=msgs[Math.min(tapCount-1,msgs.length-1)];
+  // Rain emoji
+  for(let i=0;i<8;i++){
+    setTimeout(()=>{
+      const d=document.createElement('div');d.className='fairy-dust';
+      d.textContent=['✨','⭐','💖','🌟','🧚'][Math.floor(Math.random()*5)];
+      d.style.left=(el.getBoundingClientRect().left+(Math.random()-.5)*100)+'px';
+      d.style.top=(el.getBoundingClientRect().top+(Math.random()-.5)*60)+'px';
+      d.style.fontSize='1.8em';
+      document.body.appendChild(d);
+      setTimeout(()=>d.remove(),1200);
+    },i*60);
+  }
+}
+
+// Close on bg click or escape
+document.getElementById('storyOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('storyOverlay'))closeStory();
+});
+document.addEventListener('keydown',e=>{
+  if(!currentStory)return;
+  if(e.key==='ArrowRight')goPage(1);
+  if(e.key==='ArrowLeft')goPage(-1);
+  if(e.key==='Escape')closeStory();
+});
+
+// ═══════════════════════════════════
+//  SWIPE NAVIGATION (mobile)
+// ═══════════════════════════════════
+let touchStartX=0, touchStartY=0, touchStartTime=0, swiping=false;
+const overlay=document.getElementById('storyOverlay');
+
+overlay.addEventListener('touchstart',e=>{
+  if(!currentStory) return;
+  const t=e.touches[0];
+  touchStartX=t.clientX; touchStartY=t.clientY;
+  touchStartTime=Date.now(); swiping=true;
+},{passive:true});
+
+overlay.addEventListener('touchend',e=>{
+  if(!currentStory||!swiping) return;
+  swiping=false;
+  const t=e.changedTouches[0];
+  const dx=t.clientX-touchStartX;
+  const dy=t.clientY-touchStartY;
+  const dt=Date.now()-touchStartTime;
+  // Must be horizontal swipe: >60px, faster than 400ms, more horizontal than vertical
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5 && dt<400){
+    if(dx<0) goPage(1);   // swipe left = next
+    else goPage(-1);       // swipe right = back
+  }
+},{passive:true});
+
+// Prevent pull-to-refresh inside story overlay
+overlay.addEventListener('touchmove',e=>{
+  if(overlay.scrollTop===0 && e.touches[0].clientY>touchStartY){
+    // At top scrolling down: allow but don't pull-to-refresh
+  }
+},{passive:true});
+
+// ═══════════════════════════════════
+//  REDUCE PARTICLES ON LOW-END MOBILE
+// ═══════════════════════════════════
+const isLowEnd = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+if(isLowEnd){
+  // Fewer stars
+  document.querySelectorAll('.star').forEach((s,i)=>{if(i>50) s.remove()});
+  document.querySelectorAll('.floater').forEach((f,i)=>{if(i>6) f.remove()});
+}
+</script>
+</body>
+</html>
